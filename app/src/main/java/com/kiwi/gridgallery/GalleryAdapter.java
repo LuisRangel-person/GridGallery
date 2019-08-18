@@ -1,6 +1,8 @@
 package com.kiwi.gridgallery;
 
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +38,13 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.imageURL = images.get(position).getImageLink();
-        Picasso.with(con).load(images.get(position).getImageLink()).resize(80, 80).centerCrop().into(holder.image);
+        holder.imageObj = images.get(position);
+        if(images.get(position).getNsfw()){//Don't want NSFW stuff to just show up on the gallery view
+            holder.image.setImageDrawable(con.getDrawable(R.drawable.grid_nsfw));
+        }
+        else {
+            Picasso.with(con).load(images.get(position).getImageLink()).resize(80, 80).centerCrop().into(holder.image);
+        }
     }
 
     @Override
@@ -48,7 +55,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView image;
-        String imageURL;
+        ImageObject imageObj;
 
         ViewHolder(View imageView) {
             super(imageView);
@@ -58,14 +65,17 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
 
         @Override
         public void onClick(View view) {
-            if (clickListener != null) clickListener.onItemClick(view, getAdapterPosition());
+            Intent intent = new Intent(con, ImageViewActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("image_title", imageObj.getTitle());
+            intent.putExtra("image_url", imageObj.getImageLink());
+            intent.putExtra("image_op", imageObj.getOpUser());
+            intent.putExtra("image_description", imageObj.getDescription());
+            con.startActivity(intent);
+            Log.i("Grid Click", "Clicked");
         }
     }
 
-    // allows clicks events to be caught
-    void setClickListener(ImageClickListener imageClickListener) {
-        this.clickListener = imageClickListener;
-    }
 
     // parent activity will implement this method to respond to click events
     public interface ImageClickListener {

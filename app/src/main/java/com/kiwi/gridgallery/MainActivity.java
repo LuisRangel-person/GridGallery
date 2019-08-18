@@ -4,8 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import org.json.JSONArray;
@@ -20,16 +24,20 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    ImageView test;
     GalleryAdapter adapter;
-
+    EditText searchQuery;
+    String baseURL = " https://api.imgur.com/3/gallery/search/1?q=";//q= is the query, this will be retrieved from the text input bar
+    String query;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
-        test = findViewById(R.id.image_test);
-        String baseURL = " https://api.imgur.com/3/gallery/search/1?q=";//q= is the query, this will be retrieved from the text input bar
-        String query = "luna";
+
+        CommentCache cache = CommentCache.getInstance();
+
+        searchQuery = findViewById(R.id.search_query);
+        query = searchQuery.getText().toString().isEmpty() ? "kiwi" : searchQuery.getText().toString();
         new JSONLoaderTask().execute(baseURL + query);
     }
 
@@ -69,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                 ArrayList<ImageObject> list = new ArrayList<>();
                 for(int i = 0; i < JSONarr.length();i++){
                     ImageObject current = new ImageObject(JSONarr.optJSONObject(i));
-                    if(current.getImageLink() != null && !current.getImageLink().equals("")) {//Check if image link isn't null , if it is don't add to the list
+                    if(current.getImageLink() != null && !current.getImageLink().equals("") && vaildateImage(current.getImageLink())) {//Check if image link isn't null , if it is don't add to the list, also exclude .mp4 as they are no images
                         list.add(current);
                     }
                 }//Get Image List
@@ -87,4 +95,23 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }//JSON Loader Class
+    private boolean vaildateImage(String url){
+        if(url.contains(".mp4")){
+            return false;
+        }
+        if(url.contains(".gif")){
+            return false;
+        }
+        return true;
+    }
+
+    public void imageSearch(View target){//This will query the Imgur API when pressed
+        query = searchQuery.getText().toString();
+        if(!query.isEmpty()) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            new JSONLoaderTask().execute(baseURL + query);
+        }
+    }
+
 }
