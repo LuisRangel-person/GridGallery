@@ -62,6 +62,8 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-
+    <style name="SplashTheme" parent="AppTheme.NoActionBar">
+        <item name="android:windowBackground">@drawable/ic_splashscreen</item>
+    </style>
 
 </resources>

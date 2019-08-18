@@ -63,12 +63,12 @@ public class ImageViewActivity extends AppCompatActivity {
         }
     }
 
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item){//This handles the pressing of the back button
         finish();
         return true;
     }
 
-    public void submitComment(View target){
+    public void submitComment(View target){//This will handle the submission of image comments
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         comment = imageviewComment.getText().toString();

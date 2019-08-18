@@ -5,6 +5,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -28,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     EditText searchQuery;
     String baseURL = " https://api.imgur.com/3/gallery/search/1?q=";//q= is the query, this will be retrieved from the text input bar
     String query;
+    RecyclerView gallery;
+    ImageView error_no_internet;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,9 +40,26 @@ public class MainActivity extends AppCompatActivity {
 
         CommentCache cache = CommentCache.getInstance();
 
+        //Check if there is internet, can't load nothin' if there isn't any internet
+        ConnectivityManager connectManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectManager.getActiveNetworkInfo();
+        Boolean isConnected = networkInfo.isConnectedOrConnecting();
+
+        error_no_internet = findViewById(R.id.error_no_internet);
+        gallery = findViewById(R.id.gallery);
         searchQuery = findViewById(R.id.search_query);
-        query = searchQuery.getText().toString().isEmpty() ? "kiwi" : searchQuery.getText().toString();
-        new JSONLoaderTask().execute(baseURL + query);
+
+        if(isConnected) {
+            error_no_internet.setVisibility(View.GONE);
+            gallery.setVisibility(View.VISIBLE);
+            query = searchQuery.getText().toString().isEmpty() ? "kiwi" : searchQuery.getText().toString();
+            new JSONLoaderTask().execute(baseURL + query);
+        }
+        else {//Show an error message if there is no internet connectivity
+            error_no_internet.setVisibility(View.VISIBLE);
+            gallery.setVisibility(View.GONE);
+            //CustomDialog(this, "Error", "Not connected to the internet.", true, false)
+        }
     }
 
     class JSONLoaderTask extends AsyncTask<String, String, String>{//I wrote this function for another project, had to write it in Java this time
@@ -106,11 +127,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void imageSearch(View target){//This will query the Imgur API when pressed
-        query = searchQuery.getText().toString();
-        if(!query.isEmpty()) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-            new JSONLoaderTask().execute(baseURL + query);
+        if(searchQuery != null) {
+            query = searchQuery.getText().toString();
+        }
+        //Check if there is internet, can't load nothin' if there isn't any internet
+        ConnectivityManager connectManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectManager.getActiveNetworkInfo();
+        Boolean isConnected = networkInfo.isConnectedOrConnecting();
+        if(isConnected) {
+            if(query != null && !query.isEmpty()) {
+                gallery.setVisibility(View.VISIBLE);
+                error_no_internet.setVisibility(View.GONE);
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                new JSONLoaderTask().execute(baseURL + query);
+            }
+        }
+        else {//Show an error message if there is no internet connectivity
+            error_no_internet.setVisibility(View.VISIBLE);
+            gallery.setVisibility(View.GONE);
+            //CustomDialog(this, "Error", "Not connected to the internet.", true, false)
         }
     }
 

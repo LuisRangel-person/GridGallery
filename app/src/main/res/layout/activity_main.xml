@@ -5,6 +5,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:id="@+id/error_no_internet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/error_no_internet"
+        android:visibility="visible"
+        />
+
     <RelativeLayout
         android:id="@+id/search_container"
         android:layout_width="fill_parent"
