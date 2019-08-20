@@ -10,7 +10,7 @@
             android:id="@+id/iv_ad_logo"
             android:layout_width="196.5dp"
             android:layout_height="168.5dp"
-            android:contentDescription="Logo"
+            android:contentDescription="@string/ad_logo"
             android:background="@drawable/ic_splashlogo_crafted"
             android:layout_centerHorizontal="true"
     />
@@ -21,7 +21,7 @@
             android:layout_below="@id/iv_ad_logo"
             style="@style/aboutBody"
             android:layout_centerHorizontal="true"
-            android:text="Version"
+            android:text="@string/ad_version"
     />
     <TextView
             android:id="@+id/tv_ad_text"

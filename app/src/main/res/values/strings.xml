@@ -11,7 +11,8 @@
     <string name="dialog_description">Description</string>
 
     <string name="ad_about">This application utilizes Picasso, an LRU Cache, and the imgur API to display image search results in a grid view. Creating this was fun, thank you for checking out my app! All illustrations were created by me</string>
-
+    <string name="ad_version">Version</string>
+    <string name="ad_logo">Logo</string>
 
     <string name="yes">OK</string>
     <string name="no">No</string>
