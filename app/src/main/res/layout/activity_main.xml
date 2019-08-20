@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black"
     tools:context=".MainActivity">
 
     <ImageView
@@ -10,7 +11,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/error_no_internet"
-        android:visibility="visible"
+        android:visibility="gone"
+        />
+    <ImageView
+        android:id="@+id/error_no_results"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/error_no_results"
+        android:visibility="gone"
         />
 
     <RelativeLayout
@@ -26,13 +34,16 @@
             android:layout_height="60dp"
             android:singleLine="true"
             android:padding="16dp"
-            android:hint="Enter Search Query" />
+            android:maxLines="1"
+            android:hint="@string/search_hint" />
         <Button
             android:id="@+id/button_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:background="@drawable/capsule"
             android:onClick="imageSearch"
-            android:text="Search"
+            android:text="@string/search"
             android:layout_toEndOf="@id/search_query"/>
     </RelativeLayout>
     <View

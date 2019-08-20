@@ -32,34 +32,38 @@ public class MainActivity extends AppCompatActivity {
     String query;
     RecyclerView gallery;
     ImageView error_no_internet;
+    ImageView error_no_results;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
-        CommentCache cache = CommentCache.getInstance();
-
-        //Check if there is internet, can't load nothin' if there isn't any internet
-        ConnectivityManager connectManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectManager.getActiveNetworkInfo();
-        Boolean isConnected = networkInfo.isConnectedOrConnecting();
-
         error_no_internet = findViewById(R.id.error_no_internet);
+        error_no_results = findViewById(R.id.error_no_results);
         gallery = findViewById(R.id.gallery);
         searchQuery = findViewById(R.id.search_query);
-
-        if(isConnected) {
+        if(isConnected()) {
             error_no_internet.setVisibility(View.GONE);
             gallery.setVisibility(View.VISIBLE);
-            query = searchQuery.getText().toString().isEmpty() ? "kiwi" : searchQuery.getText().toString();
-            new JSONLoaderTask().execute(baseURL + query);
+            ListCache listCache = ListCache.getInstance();
+            if(listCache.getList() == null) {//If a list exists, don't reload
+                query = searchQuery.getText().toString().isEmpty() ? "kiwi" : searchQuery.getText().toString();
+                new JSONLoaderTask().execute(baseURL + query);
+            }
         }
         else {//Show an error message if there is no internet connectivity
             error_no_internet.setVisibility(View.VISIBLE);
             gallery.setVisibility(View.GONE);
-            //CustomDialog(this, "Error", "Not connected to the internet.", true, false)
+            new CustomDialog(this, "Error", "Not connected to the internet.", true, false);
         }
+    }
+
+    @Override
+    protected void onResume(){//This is a view model to hold the json object list and then set up the grid view
+        super.onResume();
+        ListCache listCache = ListCache.getInstance();
+        ArrayList<ImageObject> list = listCache.getList();
+        setUpGridView(list);
     }
 
     class JSONLoaderTask extends AsyncTask<String, String, String>{//I wrote this function for another project, had to write it in Java this time
@@ -69,11 +73,11 @@ public class MainActivity extends AppCompatActivity {
                 String authHeaderID = "137cda6b5008a7c";
                 URL url = new URL(strings[0]);
                 HttpURLConnection imageConnection =  (HttpURLConnection) url.openConnection();
-                imageConnection.addRequestProperty("Authorization", "Client-ID " + authHeaderID);
+                imageConnection.addRequestProperty("Authorization", "Client-ID " + authHeaderID);//Add the client ID for the API call
                 imageConnection.connect();
                 String r = imageConnection.getResponseMessage();
                 int status = imageConnection.getResponseCode();//Getting the Status and handling it
-                if(status != 0){
+                if(status == 200){
                     BufferedReader buff = new BufferedReader(new InputStreamReader(imageConnection.getInputStream()));
                     StringBuilder strBul = new StringBuilder();
                     String line;
@@ -93,30 +97,30 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             try {
+                gallery.setVisibility(View.VISIBLE);//Reveal the Gallery
                 JSONObject response = new JSONObject(s);
                 JSONArray JSONarr = response.getJSONArray("data");
                 ArrayList<ImageObject> list = new ArrayList<>();
+
+                //Iterate though the JSON array to build Image Objects
                 for(int i = 0; i < JSONarr.length();i++){
                     ImageObject current = new ImageObject(JSONarr.optJSONObject(i));
-                    if(current.getImageLink() != null && !current.getImageLink().equals("") && vaildateImage(current.getImageLink())) {//Check if image link isn't null , if it is don't add to the list, also exclude .mp4 as they are no images
+                    if(current.getImageLink() != null && !current.getImageLink().equals("") && validateImage(current.getImageLink())) {//Check if image link isn't null , if it is don't add to the list, also exclude .mp4 as they are no images
                         list.add(current);
                     }
                 }//Get Image List
-                //Set up the grid view
-                RecyclerView recyclerView = findViewById(R.id.gallery);
-                int numColumns = 5;
-                recyclerView.setLayoutManager(new GridLayoutManager(getApplicationContext(),numColumns));
-                adapter = new GalleryAdapter(getApplicationContext(), list);
-                recyclerView.setAdapter(adapter);
-//                Picasso.with(getApplication()).load(list.get(0).getImageLink()).into(test);
-                int stop = 0;
+
+                ListCache listCache = ListCache.getInstance();
+                listCache.setList(list);
+                setUpGridView(list);
             }
             catch (Exception e){
                 e.printStackTrace();
             }
         }
     }//JSON Loader Class
-    private boolean vaildateImage(String url){
+
+    private boolean validateImage(String url){
         if(url.contains(".mp4")){
             return false;
         }
@@ -124,19 +128,14 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return true;
-    }
+    }//Validate Image
 
     public void imageSearch(View target){//This will query the Imgur API when pressed
         if(searchQuery != null) {
             query = searchQuery.getText().toString();
         }
-        //Check if there is internet, can't load nothin' if there isn't any internet
-        ConnectivityManager connectManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectManager.getActiveNetworkInfo();
-        Boolean isConnected = networkInfo.isConnectedOrConnecting();
-        if(isConnected) {
+        if(isConnected()) {
             if(query != null && !query.isEmpty()) {
-                gallery.setVisibility(View.VISIBLE);
                 error_no_internet.setVisibility(View.GONE);
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
@@ -150,4 +149,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void setUpGridView(ArrayList<ImageObject> list){
+        //Set up the grid view
+        RecyclerView recyclerView = findViewById(R.id.gallery);
+        int numColumns = 5;
+        if(list != null) {
+            if(list.size() == 0){
+                gallery.setVisibility(View.GONE);
+                error_no_results.setVisibility(View.VISIBLE);
+            }
+            else {
+                error_no_results.setVisibility(View.GONE);//Show an image that lets the user know there was no results
+                recyclerView.setLayoutManager(new GridLayoutManager(getApplicationContext(), numColumns));
+                adapter = new GalleryAdapter(getApplicationContext(), list);
+                recyclerView.setAdapter(adapter);
+            }
+        }
+    }//Set Up Grid View
+
+    public boolean isConnected(){//This checks if a phone is connected to the internet
+        //Check if there is internet, can't load nothin' if there isn't any internet
+        ConnectivityManager connectManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectManager.getActiveNetworkInfo();
+        return networkInfo.isConnectedOrConnecting();
+    }
 }

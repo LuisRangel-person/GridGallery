@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">GridGallery</string>
+    <string name="action_settings">About</string>
+    <string name="inner_thoughts">Spongebob. Why? Why did you set me on fire Spongebob? WHY DIDN\'T YOU JUST WRITE YOUR ANDROID APP?! *panicked gasp* STOP WASTING TIMEEEEE!!
+    </string>
+    <string name="search_hint">Enter Search Query</string>
+    <string name="comment_hint">Type in your comment here</string>
+
+    <string name="dialog_title">Title</string>
+    <string name="dialog_op">Original Poster</string>
+    <string name="dialog_description">Description</string>
+
+    <string name="ad_about">This application utilizes Picasso, an LRU Cache, and the imgur API to display image search results in a grid view. Creating this was fun, thank you for checking out my app! All illustrations were created by me</string>
+
+
+    <string name="yes">OK</string>
+    <string name="no">No</string>
+    <string name="submit">Submit</string>
+    <string name="search">Search</string>
 </resources>
